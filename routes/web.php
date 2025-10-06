@@ -11,6 +11,17 @@ Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Test route
+Route::get('/test-employee/{id}', function ($id) {
+    $user = \App\Models\User::find($id);
+    $role = \App\Models\UserRole::where('user_id', $id)->first();
+
+    return response()->json([
+        'user' => $user,
+        'role' => $role
+    ]);
+});
+
 // Routes cho Nhân viên
 Route::prefix('employee')->name('employee.')->group(function () {
     Route::get('/dashboard', [EmployeeController::class, 'dashboard'])->name('dashboard');
@@ -25,6 +36,8 @@ Route::prefix('accountant')->name('accountant.')->group(function () {
 
     // Quản lý nhân viên
     Route::get('/employees', [AccountantController::class, 'getEmployees'])->name('employees');
+    Route::get('/employees/{id}', [AccountantController::class, 'getEmployee'])->name('employees.get');
+    Route::put('/employees/{id}', [AccountantController::class, 'updateEmployee'])->name('employees.update');
     Route::delete('/employees/{id}', [AccountantController::class, 'deleteEmployee'])->name('employees.delete');
 
     // Quản lý tài khoản

@@ -27,6 +27,7 @@ class AccountantController extends Controller
     public function getEmployees(Request $request)
     {
         $department = $request->get('department', 'all');
+        $search = $request->get('search', '');
 
         $query = User::query();
 
@@ -34,7 +35,18 @@ class AccountantController extends Controller
             $query->where('department', $department);
         }
 
-        $employees = $query->get();
+        // Thêm tìm kiếm nếu có
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'LIKE', '%' . $search . '%')
+                    ->orWhere('full_name', 'LIKE', '%' . $search . '%')
+                    ->orWhere('cccd', 'LIKE', '%' . $search . '%')
+                    ->orWhere('phone', 'LIKE', '%' . $search . '%')
+                    ->orWhere('department', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        $employees = $query->orderBy('full_name', 'asc')->get();
 
         return response()->json($employees);
     }
@@ -50,10 +62,87 @@ class AccountantController extends Controller
         return response()->json(['success' => false, 'message' => 'Không tìm thấy nhân viên!']);
     }
 
+    public function getEmployee($id)
+    {
+        try {
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Không tìm thấy nhân viên!']);
+            }
+
+            // Lấy role từ bảng user_roles
+            $userRole = UserRole::where('user_id', $id)->first();
+
+            $userData = $user->toArray();
+            $userData['role'] = $userRole ? $userRole->user_type : null;
+
+            return response()->json(['success' => true, 'employee' => $userData]);
+
+        } catch (\Exception $e) {
+            Log::error('Error getting employee: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
+        }
+    }
+
+    public function updateEmployee(Request $request, $id)
+    {
+        try {
+            $user = User::find($id);
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'Không tìm thấy nhân viên!']);
+            }
+
+            $request->validate([
+                'full_name' => 'required|string|max:100',
+                'department' => 'required|in:marketing,sales,nhân sự,kinh doanh',
+                'position' => 'required|in:nhân viên',
+                'phone' => 'required|string|size:10|unique:users,phone,' . $id,
+                'cccd' => 'required|string|size:12|unique:users,cccd,' . $id,
+                'role' => 'required|in:ke-toan,nhan-vien,truong-phong',
+                'gender' => 'nullable|in:Nam,Nữ',
+                'address' => 'nullable|string|max:255',
+                'dependent' => 'nullable|integer|min:0',
+            ]);
+
+            // Cập nhật thông tin user
+            $user->update([
+                'full_name' => $request->full_name,
+                'department' => $request->department,
+                'position' => $request->position,
+                'phone' => $request->phone,
+                'cccd' => $request->cccd,
+                'gender' => $request->gender ?? $user->gender,
+                'address' => $request->address,
+                'dependent' => $request->dependent,
+            ]);
+
+            // Cập nhật role nếu thay đổi
+            $currentRole = $user->userRoles()->first();
+            if ($currentRole && $currentRole->user_type !== $request->role) {
+                $currentRole->delete();
+                UserRole::create([
+                    'user_id' => $user->id,
+                    'user_type' => $request->role,
+                ]);
+            } elseif (!$currentRole) {
+                UserRole::create([
+                    'user_id' => $user->id,
+                    'user_type' => $request->role,
+                ]);
+            }
+
+            return response()->json(['success' => true, 'message' => 'Cập nhật thông tin nhân viên thành công!']);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating employee: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Có lỗi xảy ra khi cập nhật: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function createAccount(Request $request)
     {
         $request->validate([
-            'id' => 'required|string|size:10|unique:users,id',
+            'id' => 'required|string|max:10|unique:users,id',
             'full_name' => 'required|string|max:100',
             'password' => 'required|string|min:6',
             'department' => 'required|in:marketing,sales,nhân sự,kinh doanh',
@@ -101,7 +190,7 @@ class AccountantController extends Controller
     {
         try {
             $deductions = $request->input('deductions');
-            
+
             if (!$deductions || !is_array($deductions)) {
                 return response()->json(['success' => false, 'message' => 'Dữ liệu không hợp lệ!'], 400);
             }
@@ -114,18 +203,18 @@ class AccountantController extends Controller
 
                 Deduction::updateOrCreate(
                     [
-                        'month' => (int)$deduction['month'], 
-                        'year' => (int)$deduction['year']
+                        'month' => (int) $deduction['month'],
+                        'year' => (int) $deduction['year']
                     ],
                     [
-                        'self_deduction' => (float)($deduction['self_deduction'] ?? 11000000),
-                        'dependent_deduction' => (float)($deduction['dependent_deduction'] ?? 4400000),
+                        'self_deduction' => (float) ($deduction['self_deduction'] ?? 11000000),
+                        'dependent_deduction' => (float) ($deduction['dependent_deduction'] ?? 4400000),
                     ]
                 );
             }
 
             return response()->json(['success' => true, 'message' => 'Thiết lập giảm trừ thành công!']);
-            
+
         } catch (\Exception $e) {
             Log::error('Error saving deductions: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Có lỗi xảy ra khi lưu thiết lập: ' . $e->getMessage()], 500);
@@ -149,10 +238,10 @@ class AccountantController extends Controller
             return response()->json(['error' => 'Chưa thiết lập mức giảm trừ cho tháng và năm này.']);
         }
 
-        $query = User::leftJoin('month_taxes', function($join) use ($month, $year) {
+        $query = User::leftJoin('month_taxes', function ($join) use ($month, $year) {
             $join->on('users.id', '=', 'month_taxes.user_id')
-                 ->where('month_taxes.month', $month)
-                 ->where('month_taxes.year', $year);
+                ->where('month_taxes.month', $month)
+                ->where('month_taxes.year', $year);
         })->select('users.*', 'month_taxes.salary', 'month_taxes.tax', 'month_taxes.net_salary');
 
         if ($department !== 'all') {
@@ -171,7 +260,7 @@ class AccountantController extends Controller
     {
         try {
             $salaries = $request->input('salaries');
-            
+
             if (!$salaries || !is_array($salaries)) {
                 return response()->json(['success' => false, 'message' => 'Dữ liệu không hợp lệ!'], 400);
             }
@@ -183,11 +272,11 @@ class AccountantController extends Controller
                 }
 
                 $userId = $salaryData['id'];
-                $month = (int)$salaryData['month'];
-                $year = (int)$salaryData['year'];
-                $salary = (float)($salaryData['salary'] ?? 0);
-                $tax = (float)($salaryData['tax'] ?? 0);
-                $netSalary = (float)($salaryData['net_salary'] ?? 0);
+                $month = (int) $salaryData['month'];
+                $year = (int) $salaryData['year'];
+                $salary = (float) ($salaryData['salary'] ?? 0);
+                $tax = (float) ($salaryData['tax'] ?? 0);
+                $netSalary = (float) ($salaryData['net_salary'] ?? 0);
 
                 // Use raw SQL to handle composite primary key upsert
                 DB::statement('
@@ -202,7 +291,7 @@ class AccountantController extends Controller
             }
 
             return response()->json(['success' => true, 'message' => 'Dữ liệu lương đã được lưu thành công!']);
-            
+
         } catch (\Exception $e) {
             Log::error('Error saving salaries: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Có lỗi xảy ra khi lưu dữ liệu: ' . $e->getMessage()], 500);
@@ -227,9 +316,9 @@ class AccountantController extends Controller
         }
 
         // Lấy danh sách nhân viên với dữ liệu quyết toán (nếu có)
-        $query = User::leftJoin('year_taxes', function($join) use ($year) {
+        $query = User::leftJoin('year_taxes', function ($join) use ($year) {
             $join->on('users.id', '=', 'year_taxes.user_id')
-                 ->where('year_taxes.year', $year);
+                ->where('year_taxes.year', $year);
         })->select('users.*', 'year_taxes.total_salary', 'year_taxes.total_tax', 'year_taxes.net_salary');
 
         if ($department !== 'all') {
@@ -241,10 +330,10 @@ class AccountantController extends Controller
         // Thêm dữ liệu monthly summary cho mỗi nhân viên
         foreach ($employees as $employee) {
             $monthlyData = MonthTax::where('user_id', $employee->id)
-                                   ->where('year', $year)
-                                   ->selectRaw('SUM(salary) as monthly_total_salary, SUM(tax) as monthly_total_tax, SUM(net_salary) as monthly_net_salary')
-                                   ->first();
-            
+                ->where('year', $year)
+                ->selectRaw('SUM(salary) as monthly_total_salary, SUM(tax) as monthly_total_tax, SUM(net_salary) as monthly_net_salary')
+                ->first();
+
             // Ưu tiên dữ liệu đã quyết toán, nếu không có thì dùng tổng monthly
             if (!$employee->total_salary && $monthlyData) {
                 $employee->total_salary = $monthlyData->monthly_total_salary ?? 0;
@@ -287,8 +376,8 @@ class AccountantController extends Controller
 
         // Tính tổng lương và thuế từ dữ liệu hàng tháng
         $monthlyData = MonthTax::where('user_id', $employeeId)
-                              ->where('year', $year)
-                              ->get();
+            ->where('year', $year)
+            ->get();
 
         $totalSalary = $monthlyData->sum('salary');
         $totalTax = $monthlyData->sum('tax');
@@ -302,13 +391,13 @@ class AccountantController extends Controller
             // Tính lại thuế theo quy định quyết toán thuế hàng năm
             $selfDeduction = $deduction->self_deduction * 12; // Giảm trừ cả năm
             $dependentDeduction = $deduction->dependent_deduction * 12 * ($user->dependent ?? 0);
-            
+
             $annualTaxableIncome = $totalSalary - $selfDeduction - $dependentDeduction;
             $annualTax = $this->calculateAnnualPersonalIncomeTax($annualTaxableIncome);
-            
+
             // So sánh với thuế đã tạm nộp để xác định thuế còn thiếu hoặc hoàn trả
             $taxDifference = $annualTax - $totalTax;
-            
+
             return response()->json([
                 'total_salary' => $totalSalary,
                 'total_tax' => $annualTax,

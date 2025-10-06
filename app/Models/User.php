@@ -39,9 +39,9 @@ class User extends Authenticatable
         'dependent' => 'integer',
     ];
 
-    public function userRoles(): BelongsToMany
+    public function userRoles(): HasMany
     {
-        return $this->belongsToMany(UserRole::class, 'user_roles', 'user_id', 'user_type');
+        return $this->hasMany(UserRole::class, 'user_id');
     }
 
     public function monthTaxes(): HasMany
