@@ -11,6 +11,7 @@ use App\Models\YearTax;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AccountantController extends Controller
 {
@@ -98,19 +99,37 @@ class AccountantController extends Controller
 
     public function setupDeductions(Request $request)
     {
-        $deductions = $request->all();
+        try {
+            $deductions = $request->input('deductions');
+            
+            if (!$deductions || !is_array($deductions)) {
+                return response()->json(['success' => false, 'message' => 'Dữ liệu không hợp lệ!'], 400);
+            }
 
-        foreach ($deductions as $deduction) {
-            Deduction::updateOrCreate(
-                ['month' => $deduction['month'], 'year' => $deduction['year']],
-                [
-                    'self_deduction' => $deduction['self_deduction'],
-                    'dependent_deduction' => $deduction['dependent_deduction'],
-                ]
-            );
+            foreach ($deductions as $deduction) {
+                // Validate required fields
+                if (!isset($deduction['month']) || !isset($deduction['year'])) {
+                    continue;
+                }
+
+                Deduction::updateOrCreate(
+                    [
+                        'month' => (int)$deduction['month'], 
+                        'year' => (int)$deduction['year']
+                    ],
+                    [
+                        'self_deduction' => (float)($deduction['self_deduction'] ?? 11000000),
+                        'dependent_deduction' => (float)($deduction['dependent_deduction'] ?? 4400000),
+                    ]
+                );
+            }
+
+            return response()->json(['success' => true, 'message' => 'Thiết lập giảm trừ thành công!']);
+            
+        } catch (\Exception $e) {
+            Log::error('Error saving deductions: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Có lỗi xảy ra khi lưu thiết lập: ' . $e->getMessage()], 500);
         }
-
-        return response()->json(['message' => 'Thiết lập giảm trừ thành công!']);
     }
 
     public function getSalaries(Request $request)
@@ -150,24 +169,44 @@ class AccountantController extends Controller
 
     public function saveSalaries(Request $request)
     {
-        $salaries = $request->get('salaries');
+        try {
+            $salaries = $request->input('salaries');
+            
+            if (!$salaries || !is_array($salaries)) {
+                return response()->json(['success' => false, 'message' => 'Dữ liệu không hợp lệ!'], 400);
+            }
 
-        foreach ($salaries as $employee) {
-            MonthTax::updateOrCreate(
-                [
-                    'user_id' => $employee['id'],
-                    'month' => $employee['month'],
-                    'year' => $employee['year'],
-                ],
-                [
-                    'salary' => $employee['salary'],
-                    'tax' => $employee['tax'],
-                    'net_salary' => $employee['net_salary'],
-                ]
-            );
+            foreach ($salaries as $salaryData) {
+                // Validate required fields
+                if (!isset($salaryData['id']) || !isset($salaryData['month']) || !isset($salaryData['year'])) {
+                    continue;
+                }
+
+                $userId = $salaryData['id'];
+                $month = (int)$salaryData['month'];
+                $year = (int)$salaryData['year'];
+                $salary = (float)($salaryData['salary'] ?? 0);
+                $tax = (float)($salaryData['tax'] ?? 0);
+                $netSalary = (float)($salaryData['net_salary'] ?? 0);
+
+                // Use raw SQL to handle composite primary key upsert
+                DB::statement('
+                    INSERT INTO month_taxes (user_id, month, year, salary, tax, net_salary, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
+                    ON DUPLICATE KEY UPDATE
+                    salary = VALUES(salary),
+                    tax = VALUES(tax),
+                    net_salary = VALUES(net_salary),
+                    updated_at = NOW()
+                ', [$userId, $month, $year, $salary, $tax, $netSalary]);
+            }
+
+            return response()->json(['success' => true, 'message' => 'Dữ liệu lương đã được lưu thành công!']);
+            
+        } catch (\Exception $e) {
+            Log::error('Error saving salaries: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Có lỗi xảy ra khi lưu dữ liệu: ' . $e->getMessage()], 500);
         }
-
-        return response()->json(['message' => 'Dữ liệu lương đã được lưu thành công!']);
     }
 
     public function getAnnualTax(Request $request)

@@ -16,6 +16,7 @@ class MonthTax extends Model
         'net_salary',
     ];
 
+    // Composite primary key
     protected $primaryKey = ['user_id', 'month', 'year'];
     public $incrementing = false;
 
@@ -28,5 +29,34 @@ class MonthTax extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Set the keys for a save update query.
+     */
+    protected function setKeysForSaveQuery($query)
+    {
+        if (is_array($this->primaryKey)) {
+            foreach ($this->primaryKey as $key) {
+                $query->where($key, '=', $this->getOriginal($key, $this->getAttribute($key)));
+            }
+            return $query;
+        }
+        return parent::setKeysForSaveQuery($query);
+    }
+
+    /**
+     * Get the value of the model's primary key.
+     */
+    public function getKey()
+    {
+        if (is_array($this->primaryKey)) {
+            $key = [];
+            foreach ($this->primaryKey as $k) {
+                $key[$k] = $this->getAttribute($k);
+            }
+            return $key;
+        }
+        return parent::getKey();
     }
 }

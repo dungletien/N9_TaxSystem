@@ -481,6 +481,12 @@
             $.ajax({
                 url: `/accountant/employees/${id}`,
                 method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
                 success: function(data) {
                     if (data.success) {
                         alert(data.message);
@@ -489,8 +495,12 @@
                         alert(data.message);
                     }
                 },
-                error: function() {
-                    alert('Có lỗi xảy ra khi xóa nhân viên!');
+                error: function(xhr) {
+                    let errorMessage = 'Có lỗi xảy ra khi xóa nhân viên!';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    alert(errorMessage);
                 }
             });
         }
@@ -499,10 +509,18 @@
     $('#create-account-form').submit(function(e) {
         e.preventDefault();
 
+        // Show loading
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang tạo...');
+
         $.ajax({
             url: '{{ route("accountant.accounts.create") }}',
             method: 'POST',
-            data: $(this).serialize(),
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: $(this).serialize() + '&_token={{ csrf_token() }}',
             success: function(data) {
                 if (data.success) {
                     alert(data.message);
@@ -512,12 +530,21 @@
                 }
             },
             error: function(xhr) {
-                let errors = xhr.responseJSON.errors;
                 let errorMessage = 'Có lỗi xảy ra:\n';
-                for (let field in errors) {
-                    errorMessage += errors[field][0] + '\n';
+                
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    for (let field in xhr.responseJSON.errors) {
+                        errorMessage += xhr.responseJSON.errors[field][0] + '\n';
+                    }
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
                 }
+                
                 alert(errorMessage);
+            },
+            complete: function() {
+                // Restore button
+                submitBtn.prop('disabled', false).html(originalText);
             }
         });
     });
@@ -572,15 +599,34 @@
             });
         });
 
+        // Show loading
+        const saveBtn = $('button:contains("Lưu thiết lập")');
+        const originalText = saveBtn.html();
+        saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
+
         $.ajax({
             url: '{{ route("accountant.deductions.setup") }}',
             method: 'POST',
-            data: deductions,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: {
+                deductions: deductions,
+                _token: '{{ csrf_token() }}'
+            },
             success: function(data) {
                 alert(data.message);
             },
-            error: function() {
-                alert('Có lỗi xảy ra khi lưu thiết lập!');
+            error: function(xhr) {
+                let errorMessage = 'Có lỗi xảy ra khi lưu thiết lập!';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                alert(errorMessage);
+            },
+            complete: function() {
+                // Restore button
+                saveBtn.prop('disabled', false).html(originalText);
             }
         });
     }
@@ -659,9 +705,13 @@
         $.ajax({
             url: '{{ route("employee.calculate.tax") }}',
             method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             data: {
                 salary: salary,
-                dependent: dependent
+                dependent: dependent,
+                _token: '{{ csrf_token() }}'
             },
             success: function(data) {
                 row.find('.tax-amount').text(formatCurrency(data.tax));
@@ -683,7 +733,7 @@
             const employeeId = row.data('employee-id');
             const salary = parseFloat(row.find('.salary-input').val()) || 0;
             
-            if (salary > 0) {
+            if (salary > 0 && employeeId) {
                 const taxText = row.find('.tax-amount').text().replace(/[^\d]/g, '');
                 const netSalaryText = row.find('.net-salary').text().replace(/[^\d]/g, '');
                 
@@ -703,15 +753,49 @@
             return;
         }
 
+        // Show loading
+        const saveBtn = $('button:contains("Lưu dữ liệu")');
+        const originalText = saveBtn.html();
+        saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
+
         $.ajax({
             url: '{{ route("accountant.salaries.save") }}',
             method: 'POST',
-            data: { salaries: salaries },
-            success: function(data) {
-                alert(data.message);
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            error: function() {
-                alert('Có lỗi xảy ra khi lưu dữ liệu!');
+            data: { 
+                salaries: salaries,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message);
+                    // Optionally reload the table to show saved data
+                    loadSalaries();
+                } else {
+                    alert(response.message || 'Có lỗi xảy ra khi lưu dữ liệu!');
+                }
+            },
+            error: function(xhr) {
+                console.error('Error saving salaries:', xhr);
+                let errorMessage = 'Có lỗi xảy ra khi lưu dữ liệu!';
+                
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    // Validation errors
+                    errorMessage = 'Dữ liệu không hợp lệ:\n';
+                    for (let field in xhr.responseJSON.errors) {
+                        errorMessage += xhr.responseJSON.errors[field][0] + '\n';
+                    }
+                }
+                
+                alert(errorMessage);
+            },
+            complete: function() {
+                // Restore button
+                saveBtn.prop('disabled', false).html(originalText);
             }
         });
     }
