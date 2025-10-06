@@ -64,4 +64,6 @@ Route::prefix('manager')->name('manager.')->group(function () {
     Route::get('/employees', [ManagerController::class, 'getEmployees'])->name('employees');
     Route::get('/department', [ManagerController::class, 'getDepartment'])->name('department');
     Route::get('/salaries', [ManagerController::class, 'getSalaries'])->name('salaries');
+    Route::get('/monthly-tax', [ManagerController::class, 'getMonthlyTax'])->name('monthly-tax');
+    Route::get('/annual-tax', [ManagerController::class, 'getAnnualTax'])->name('annual-tax');
 });
