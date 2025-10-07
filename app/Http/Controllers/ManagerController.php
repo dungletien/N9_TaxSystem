@@ -37,9 +37,9 @@ class ManagerController extends Controller
 
             // Lấy tất cả nhân viên trong cùng phòng ban (trừ trưởng phòng)
             $employees = User::where('department', $userDepartment)
-                           ->where('id', '!=', Session::get('user.id')) // Loại trừ chính trưởng phòng
-                           ->orderBy('full_name', 'asc')
-                           ->get();
+                ->where('id', '!=', Session::get('user.id')) // Loại trừ chính trưởng phòng
+                ->orderBy('full_name', 'asc')
+                ->get();
 
             return response()->json($employees);
         } catch (\Exception $e) {
@@ -82,15 +82,15 @@ class ManagerController extends Controller
                 return response('<tr><td colspan="5" class="text-center">Không tìm thấy thông tin phòng ban!</td></tr>');
             }
 
-            $employees = User::leftJoin('month_taxes', function($join) use ($month, $year) {
+            $employees = User::leftJoin('month_taxes', function ($join) use ($month, $year) {
                 $join->on('users.id', '=', 'month_taxes.user_id')
-                     ->where('month_taxes.month', $month)
-                     ->where('month_taxes.year', $year);
+                    ->where('month_taxes.month', $month)
+                    ->where('month_taxes.year', $year);
             })->where('users.department', $department)
-              ->where('users.id', '!=', Session::get('user.id')) // Loại trừ trưởng phòng
-              ->select('users.id', 'users.full_name', 'month_taxes.salary', 'month_taxes.tax', 'month_taxes.net_salary')
-              ->orderBy('users.full_name', 'asc')
-              ->get();
+                ->where('users.id', '!=', Session::get('user.id')) // Loại trừ trưởng phòng
+                ->select('users.id', 'users.full_name', 'month_taxes.salary', 'month_taxes.tax', 'month_taxes.net_salary')
+                ->orderBy('users.full_name', 'asc')
+                ->get();
 
             $html = '';
 
@@ -138,15 +138,15 @@ class ManagerController extends Controller
                 return response()->json(['success' => false, 'message' => 'Không tìm thấy thông tin phòng ban!']);
             }
 
-            $employees = User::leftJoin('month_taxes', function($join) use ($month, $year) {
+            $employees = User::leftJoin('month_taxes', function ($join) use ($month, $year) {
                 $join->on('users.id', '=', 'month_taxes.user_id')
-                     ->where('month_taxes.month', $month)
-                     ->where('month_taxes.year', $year);
+                    ->where('month_taxes.month', $month)
+                    ->where('month_taxes.year', $year);
             })->where('users.department', $department)
-              ->where('users.id', '!=', Session::get('user.id'))
-              ->select('users.id', 'users.full_name', 'month_taxes.salary', 'month_taxes.tax', 'month_taxes.net_salary')
-              ->orderBy('users.full_name', 'asc')
-              ->get();
+                ->where('users.id', '!=', Session::get('user.id'))
+                ->select('users.id', 'users.full_name', 'month_taxes.salary', 'month_taxes.tax', 'month_taxes.net_salary')
+                ->orderBy('users.full_name', 'asc')
+                ->get();
 
             $html = '';
             $totalTax = 0;
@@ -234,7 +234,7 @@ class ManagerController extends Controller
                     $salary = $taxData ? $taxData->total_salary : 0;
                     $tax = $taxData ? $taxData->total_tax : 0;
                     $net = $taxData ? $taxData->total_net : 0;
-                    
+
                     // Only count employees who have salary data for statistics
                     if ($salary > 0) {
                         $totalSalary += $salary;
@@ -265,7 +265,7 @@ class ManagerController extends Controller
                     ->where('month_taxes.year', $year)
                     ->where('month_taxes.month', $month)
                     ->sum('month_taxes.tax');
-                
+
                 $monthlyData->push([
                     'month' => $month,
                     'tax' => $monthTax ?? 0

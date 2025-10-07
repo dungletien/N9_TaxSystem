@@ -9,7 +9,7 @@
     }
 
     .sidebar {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #004e92 0%, #000428 100%);
         color: white;
         min-height: 100vh;
         padding: 2rem 1rem;
@@ -71,13 +71,13 @@
     }
 
     .card-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #004e92 0%, #000428 100%);
         color: white;
         border-radius: 10px 10px 0 0 !important;
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #004e92 0%, #000428 100%);
         border: none;
         border-radius: 25px;
     }

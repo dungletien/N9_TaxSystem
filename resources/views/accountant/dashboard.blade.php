@@ -9,7 +9,7 @@
         }
 
         .sidebar {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #004e92 0%, #000428 100%);
             color: white;
             min-height: 100vh;
             padding: 2rem 1rem;
@@ -60,13 +60,13 @@
         }
 
         .card-header {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #004e92 0%, #000428 100%);
             color: white;
             border-radius: 10px 10px 0 0 !important;
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #004e92 0%, #000428 100%);
             border: none;
             border-radius: 25px;
         }
@@ -93,8 +93,8 @@
         }
 
         .input-group .btn-outline-secondary:hover {
-            background-color: #dc3545;
-            border-color: #dc3545;
+            background-color: #004e92;
+            border-color: #004e92;
             color: white;
             outline: none !important;
             box-shadow: none !important;
@@ -102,15 +102,15 @@
 
         .input-group .btn-outline-secondary:active,
         .input-group .btn-outline-secondary:focus {
-            background-color: #c82333 !important;
-            border-color: #bd2130 !important;
+            background-color: #000428 !important;
+            border-color: #000428 !important;
             color: white !important;
             outline: none !important;
             box-shadow: none !important;
         }
 
         .table tbody tr:hover {
-            background-color: #f1f3f4;
+            background-color: rgba(0, 78, 146, 0.1);
         }
     </style>
 @endpush
