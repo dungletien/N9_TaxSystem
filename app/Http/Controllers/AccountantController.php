@@ -102,10 +102,11 @@ class AccountantController extends Controller
                 'gender' => 'nullable|in:Nam,Nữ',
                 'address' => 'nullable|string|max:255',
                 'dependent' => 'nullable|integer|min:0',
+                'password' => 'nullable|string|min:6',
             ]);
 
-            // Cập nhật thông tin user
-            $user->update([
+            // Chuẩn bị dữ liệu để cập nhật
+            $updateData = [
                 'full_name' => $request->full_name,
                 'department' => $request->department,
                 'position' => $request->position,
@@ -114,7 +115,18 @@ class AccountantController extends Controller
                 'gender' => $request->gender ?? $user->gender,
                 'address' => $request->address,
                 'dependent' => $request->dependent,
-            ]);
+            ];
+
+            // Cập nhật mật khẩu nếu có
+            if ($request->filled('password')) {
+                $updateData['password'] = Hash::make($request->password);
+                Log::info('Password updated for user: ' . $id);
+            }
+
+            // Cập nhật thông tin user
+            $user->update($updateData);
+
+            Log::info('User updated successfully: ' . $id, $updateData);
 
             // Cập nhật role nếu thay đổi
             $currentRole = $user->userRoles()->first();
@@ -131,7 +143,10 @@ class AccountantController extends Controller
                 ]);
             }
 
-            return response()->json(['success' => true, 'message' => 'Cập nhật thông tin nhân viên thành công!']);
+            return response()->json([
+                'success' => true, 
+                'message' => 'Cập nhật thông tin nhân viên thành công!' . ($request->filled('password') ? ' Mật khẩu đã được thay đổi.' : '')
+            ]);
 
         } catch (\Exception $e) {
             Log::error('Error updating employee: ' . $e->getMessage());

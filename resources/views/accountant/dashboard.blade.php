@@ -112,6 +112,16 @@
         .table tbody tr:hover {
             background-color: rgba(0, 78, 146, 0.1);
         }
+
+        .form-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+
+        .modal-body .form-control:focus {
+            border-color: #004e92;
+            box-shadow: 0 0 0 0.2rem rgba(0, 78, 146, 0.25);
+        }
     </style>
 @endpush
 
@@ -519,6 +529,16 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
+                                    <label class="form-label">Mật khẩu mới</label>
+                                    <input type="password" class="form-control" id="edit-password" name="password" placeholder="Để trống nếu không muốn thay đổi">
+                                    <small class="form-text text-muted">Để trống nếu không muốn thay đổi mật khẩu</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
                                     <label class="form-label">Phòng ban</label>
                                     <select class="form-control" id="edit-department" name="department" required>
                                         <option value="">Chọn phòng ban</option>
@@ -637,20 +657,20 @@
                     if (data.length > 0) {
                         data.forEach(function (employee) {
                             html += `<tr>
-                                    <td>${employee.id}</td>
-                                    <td>${employee.full_name}</td>
-                                    <td>${employee.department}</td>
-                                    <td>${employee.phone || ''}</td>
-                                    <td>${employee.cccd}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary me-1" onclick="editEmployee('${employee.id}')">
-                                            <i class="fas fa-edit"></i> Sửa
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteEmployee('${employee.id}')">
-                                            <i class="fas fa-trash"></i> Xóa
-                                        </button>
-                                    </td>
-                                </tr>`;
+                                        <td>${employee.id}</td>
+                                        <td>${employee.full_name}</td>
+                                        <td>${employee.department}</td>
+                                        <td>${employee.phone || ''}</td>
+                                        <td>${employee.cccd}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary me-1" onclick="editEmployee('${employee.id}')">
+                                                <i class="fas fa-edit"></i> Sửa
+                                            </button>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteEmployee('${employee.id}')">
+                                                <i class="fas fa-trash"></i> Xóa
+                                            </button>
+                                        </td>
+                                    </tr>`;
                         });
                     } else {
                         html = '<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>';
@@ -719,20 +739,20 @@
                         if (data.length > 0) {
                             data.forEach(function (employee) {
                                 html += `<tr>
-                                        <td>${employee.id}</td>
-                                        <td>${employee.full_name}</td>
-                                        <td>${employee.department}</td>
-                                        <td>${employee.phone || ''}</td>
-                                        <td>${employee.cccd}</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary me-1" onclick="editEmployee('${employee.id}')">
-                                                <i class="fas fa-edit"></i> Sửa
-                                            </button>
-                                            <button class="btn btn-sm btn-danger" onclick="deleteEmployee('${employee.id}')">
-                                                <i class="fas fa-trash"></i> Xóa
-                                            </button>
-                                        </td>
-                                    </tr>`;
+                                            <td>${employee.id}</td>
+                                            <td>${employee.full_name}</td>
+                                            <td>${employee.department}</td>
+                                            <td>${employee.phone || ''}</td>
+                                            <td>${employee.cccd}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary me-1" onclick="editEmployee('${employee.id}')">
+                                                    <i class="fas fa-edit"></i> Sửa
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" onclick="deleteEmployee('${employee.id}')">
+                                                    <i class="fas fa-trash"></i> Xóa
+                                                </button>
+                                            </td>
+                                        </tr>`;
                             });
                         } else {
                             const message = searchTerm ? 'Không tìm thấy nhân viên nào phù hợp' : 'Không có dữ liệu';
@@ -794,6 +814,9 @@
                         $('#edit-dependent').val(employee.dependent || 0);
                         $('#edit-role').val(employee.role);
                         $('#edit-address').val(employee.address || '');
+                        
+                        // Clear password field
+                        $('#edit-password').val('');
 
                         console.log('Form fields filled, showing modal...');
 
@@ -818,6 +841,15 @@
         }
 
         function updateEmployee() {
+            // Validate password
+            const password = $('#edit-password').val();
+            
+            // Nếu có nhập password, kiểm tra độ dài tối thiểu
+            if (password && password.length < 6) {
+                alert('Mật khẩu phải có ít nhất 6 ký tự!');
+                return;
+            }
+            
             const id = $('#edit-employee-id').val();
             const formData = $('#edit-employee-form').serialize();
 
@@ -835,7 +867,12 @@
                 data: formData + '&_token={{ csrf_token() }}',
                 success: function (response) {
                     if (response.success) {
-                        alert(response.message);
+                        // Hiển thị thông báo thành công chi tiết
+                        let successMessage = response.message;
+                        if (password) {
+                            successMessage += '\nMật khẩu đã được cập nhật thành công!';
+                        }
+                        alert(successMessage);
                         $('#editEmployeeModal').modal('hide');
                         loadEmployees(); // Reload danh sách nhân viên
                     } else {
@@ -917,18 +954,18 @@
                     for (let month = 1; month <= 12; month++) {
                         let deduction = data.find(d => d.month == month) || {};
                         html += `<tr>
-                                <td>${month}</td>
-                                <td>
-                                    <input type="number" class="form-control"
-                                           data-month="${month}" data-field="self_deduction"
-                                           value="${deduction.self_deduction || 11000000}">
-                                </td>
-                                <td>
-                                    <input type="number" class="form-control"
-                                           data-month="${month}" data-field="dependent_deduction"
-                                           value="${deduction.dependent_deduction || 4400000}">
-                                </td>
-                            </tr>`;
+                                    <td>${month}</td>
+                                    <td>
+                                        <input type="number" class="form-control"
+                                               data-month="${month}" data-field="self_deduction"
+                                               value="${deduction.self_deduction || 11000000}">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control"
+                                               data-month="${month}" data-field="dependent_deduction"
+                                               value="${deduction.dependent_deduction || 4400000}">
+                                    </td>
+                                </tr>`;
                     }
                     $('#deductions-table-body').html(html);
                 },
@@ -1011,24 +1048,24 @@
                     if (response.employees && response.employees.length > 0) {
                         response.employees.forEach(function (employee) {
                             html += `<tr data-employee-id="${employee.id}">
-                                    <td>${employee.id}</td>
-                                    <td>${employee.full_name}</td>
-                                    <td>${employee.department}</td>
-                                    <td>
-                                        <input type="number" class="form-control salary-input"
-                                               value="${employee.salary || 0}"
-                                               data-employee-id="${employee.id}"
-                                               placeholder="Nhập lương">
-                                    </td>
-                                    <td>
-                                        <input type="number" class="form-control dependent-input"
-                                               value="${employee.dependent || 0}"
-                                               data-employee-id="${employee.id}"
-                                               min="0">
-                                    </td>
-                                    <td class="tax-amount">${formatCurrency(employee.tax || 0)}</td>
-                                    <td class="net-salary">${formatCurrency(employee.net_salary || 0)}</td>
-                                </tr>`;
+                                        <td>${employee.id}</td>
+                                        <td>${employee.full_name}</td>
+                                        <td>${employee.department}</td>
+                                        <td>
+                                            <input type="number" class="form-control salary-input"
+                                                   value="${employee.salary || 0}"
+                                                   data-employee-id="${employee.id}"
+                                                   placeholder="Nhập lương">
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control dependent-input"
+                                                   value="${employee.dependent || 0}"
+                                                   data-employee-id="${employee.id}"
+                                                   min="0">
+                                        </td>
+                                        <td class="tax-amount">${formatCurrency(employee.tax || 0)}</td>
+                                        <td class="net-salary">${formatCurrency(employee.net_salary || 0)}</td>
+                                    </tr>`;
                         });
                     } else {
                         html = '<tr><td colspan="7" class="text-center">Không có dữ liệu nhân viên</td></tr>';
@@ -1179,18 +1216,18 @@
                         response.employees.forEach(function (employee) {
                             const hasData = employee.total_salary && employee.total_salary > 0;
                             html += `<tr data-employee-id="${employee.id}">
-                                    <td>${employee.id}</td>
-                                    <td>${employee.full_name}</td>
-                                    <td>${employee.department}</td>
-                                    <td class="total-salary">${formatCurrency(employee.total_salary || 0)}</td>
-                                    <td class="total-tax">${formatCurrency(employee.total_tax || 0)}</td>
-                                    <td class="annual-net-salary">${formatCurrency(employee.net_salary || 0)}</td>
-                                    <td>
-                                        <span class="badge ${hasData ? 'bg-success' : 'bg-warning'}">
-                                            ${hasData ? 'Đã có dữ liệu' : 'Chưa có dữ liệu'}
-                                        </span>
-                                    </td>
-                                </tr>`;
+                                        <td>${employee.id}</td>
+                                        <td>${employee.full_name}</td>
+                                        <td>${employee.department}</td>
+                                        <td class="total-salary">${formatCurrency(employee.total_salary || 0)}</td>
+                                        <td class="total-tax">${formatCurrency(employee.total_tax || 0)}</td>
+                                        <td class="annual-net-salary">${formatCurrency(employee.net_salary || 0)}</td>
+                                        <td>
+                                            <span class="badge ${hasData ? 'bg-success' : 'bg-warning'}">
+                                                ${hasData ? 'Đã có dữ liệu' : 'Chưa có dữ liệu'}
+                                            </span>
+                                        </td>
+                                    </tr>`;
                         });
                     } else {
                         html = '<tr><td colspan="7" class="text-center">Không có dữ liệu</td></tr>';
