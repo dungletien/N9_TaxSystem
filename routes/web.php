@@ -80,6 +80,7 @@ Route::prefix('accountant')->name('accountant.')->group(function () {
 Route::prefix('manager')->name('manager.')->group(function () {
     Route::get('/dashboard', [ManagerController::class, 'dashboard'])->name('dashboard');
     Route::get('/employees', [ManagerController::class, 'getEmployees'])->name('employees');
+    Route::delete('/employees', [ManagerController::class, 'deleteEmployee'])->name('delete-employee');
     Route::get('/department', [ManagerController::class, 'getDepartment'])->name('department');
     Route::get('/salaries', [ManagerController::class, 'getSalaries'])->name('salaries');
     Route::get('/monthly-tax', [ManagerController::class, 'getMonthlyTax'])->name('monthly-tax');

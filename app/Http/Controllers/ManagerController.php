@@ -48,6 +48,78 @@ class ManagerController extends Controller
         }
     }
 
+    public function deleteEmployee(Request $request)
+    {
+        try {
+            if (!Session::has('user') || Session::get('user.user_type') !== 'truong-phong') {
+                return response()->json(['success' => false, 'message' => 'Bạn không có quyền xóa nhân viên!'], 403);
+            }
+
+            $employeeId = $request->input('employee_id');
+            $managerDepartment = Session::get('user.department');
+
+            if (!$employeeId) {
+                return response()->json(['success' => false, 'message' => 'Thiếu thông tin nhân viên!'], 400);
+            }
+
+            // Tìm nhân viên cần xóa
+            $employee = User::find($employeeId);
+
+            if (!$employee) {
+                return response()->json(['success' => false, 'message' => 'Không tìm thấy nhân viên!'], 404);
+            }
+
+            // Kiểm tra nhân viên có thuộc phòng ban của trưởng phòng không
+            if ($employee->department !== $managerDepartment) {
+                return response()->json(['success' => false, 'message' => 'Bạn chỉ có thể xóa nhân viên trong phòng ban của mình!'], 403);
+            }
+
+            // Kiểm tra không được xóa chính mình
+            if ($employee->id == Session::get('user.id')) {
+                return response()->json(['success' => false, 'message' => 'Bạn không thể xóa chính mình!'], 403);
+            }
+
+            // Kiểm tra nhân viên có phải là trưởng phòng không
+            $userRole = UserRole::where('user_id', $employee->id)->first();
+            if ($userRole && $userRole->role === 'truong-phong') {
+                return response()->json(['success' => false, 'message' => 'Không thể xóa trưởng phòng!'], 403);
+            }
+
+            // Bắt đầu transaction để đảm bảo tính nhất quán dữ liệu
+            DB::beginTransaction();
+
+            try {
+                // Xóa dữ liệu liên quan
+                // 1. Xóa dữ liệu thuế hàng tháng
+                MonthTax::where('user_id', $employee->id)->delete();
+
+                // 2. Xóa user role
+                UserRole::where('user_id', $employee->id)->delete();
+
+                // 3. Xóa user
+                $employee->delete();
+
+                DB::commit();
+
+                Log::info("Manager {" . Session::get('user.id') . "} deleted employee {$employee->id} - {$employee->full_name}");
+
+                return response()->json([
+                    'success' => true, 
+                    'message' => "Đã xóa thành công nhân viên {$employee->full_name}"
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollback();
+                Log::error('Error in delete transaction: ' . $e->getMessage());
+                return response()->json(['success' => false, 'message' => 'Có lỗi xảy ra khi xóa dữ liệu!'], 500);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting employee by manager: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Có lỗi xảy ra: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function getDepartment()
     {
         try {

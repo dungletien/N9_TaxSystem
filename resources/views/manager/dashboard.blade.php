@@ -121,6 +121,30 @@
         .bg-stat-secondary {
             background: #00498b !important;
         }
+
+        .btn-danger.btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger.btn-sm:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+            transform: scale(1.05);
+        }
+
+        .btn-danger.btn-sm i {
+            font-size: 0.8rem;
+        }
+
+        /* Action column styling */
+        #employees-table th:last-child,
+        #employees-table td:last-child {
+            text-align: center;
+            width: 100px;
+        }
     </style>
 @endpush
 
@@ -192,11 +216,12 @@
                                             <th>Điện thoại</th>
                                             <th>CCCD</th>
                                             <th>Địa chỉ</th>
+                                            <th>Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody id="employees-table-body">
                                         <tr>
-                                            <td colspan="6" class="text-center">Đang tải dữ liệu...</td>
+                                            <td colspan="7" class="text-center">Đang tải dữ liệu...</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -370,7 +395,7 @@
 
         function loadEmployees() {
             // Show loading state
-            $('#employees-table-body').html('<tr><td colspan="6" class="text-center">Đang tải dữ liệu...</td></tr>');
+            $('#employees-table-body').html('<tr><td colspan="7" class="text-center">Đang tải dữ liệu...</td></tr>');
 
             $.ajax({
                 url: '{{ route("manager.employees") }}',
@@ -386,10 +411,15 @@
                                         <td>${employee.phone || 'Chưa cập nhật'}</td>
                                         <td>${employee.cccd}</td>
                                         <td>${employee.address || 'Chưa cập nhật'}</td>
+                                        <td>
+                                            <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${employee.id}', '${employee.full_name}')" title="Xóa nhân viên">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
                                     </tr>`;
                         });
                     } else {
-                        html = '<tr><td colspan="6" class="text-center">Không có nhân viên nào trong phòng ban</td></tr>';
+                        html = '<tr><td colspan="7" class="text-center">Không có nhân viên nào trong phòng ban</td></tr>';
                     }
                     $('#employees-table-body').html(html);
                 },
@@ -403,7 +433,7 @@
                             window.location.href = '{{ route("login") }}';
                         }, 2000);
                     }
-                    $('#employees-table-body').html(`<tr><td colspan="6" class="text-center text-danger">${errorMessage}</td></tr>`);
+                    $('#employees-table-body').html(`<tr><td colspan="7" class="text-center text-danger">${errorMessage}</td></tr>`);
                 }
             });
         }
@@ -451,12 +481,17 @@
                                 <td>${employee.phone || 'Chưa cập nhật'}</td>
                                 <td>${employee.cccd}</td>
                                 <td>${employee.address || 'Chưa cập nhật'}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${employee.id}', '${employee.full_name}')" title="Xóa nhân viên">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
                             </tr>`;
                 });
             } else {
                 const searchTerm = $('#search-employee').val().trim();
                 const message = searchTerm ? 'Không tìm thấy nhân viên nào phù hợp' : 'Không có nhân viên nào trong phòng ban';
-                html = `<tr><td colspan="6" class="text-center">${message}</td></tr>`;
+                html = `<tr><td colspan="7" class="text-center">${message}</td></tr>`;
             }
             $('#employees-table-body').html(html);
         }
@@ -467,9 +502,63 @@
             displayEmployees(allEmployees);
         }
 
+        // Hàm xóa nhân viên
+        function deleteEmployee(employeeId, employeeName) {
+            if (confirm(`Bạn có chắc chắn muốn xóa nhân viên "${employeeName}" (ID: ${employeeId}) không?\n\nLưu ý: Hành động này sẽ xóa tất cả dữ liệu liên quan đến nhân viên này bao gồm lương, thuế, và không thể hoàn tác!`)) {
+                // Show loading state for the specific row
+                $(`tr:has(button[onclick*="${employeeId}"])`).find('td').last().html('<span class="text-warning"><i class="fas fa-spinner fa-spin"></i> Đang xóa...</span>');
+                
+                $.ajax({
+                    url: '{{ route("manager.delete-employee") }}',
+                    method: 'DELETE',
+                    data: {
+                        employee_id: employeeId,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            // Show success message
+                            alert(`Đã xóa thành công nhân viên "${employeeName}"`);
+                            
+                            // Remove employee from cache
+                            allEmployees = allEmployees.filter(emp => emp.id !== employeeId);
+                            
+                            // Update display
+                            displayEmployees(allEmployees);
+                        } else {
+                            alert('Lỗi: ' + (response.message || 'Không thể xóa nhân viên'));
+                            // Reload to restore the row
+                            loadEmployeesWithCache();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error deleting employee:', error);
+                        let errorMessage = 'Có lỗi xảy ra khi xóa nhân viên!';
+                        
+                        if (xhr.status === 401) {
+                            errorMessage = 'Phiên đăng nhập đã hết hạn!';
+                            setTimeout(() => {
+                                window.location.href = '{{ route("login") }}';
+                            }, 2000);
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.status === 403) {
+                            errorMessage = 'Bạn không có quyền xóa nhân viên này!';
+                        } else if (xhr.status === 404) {
+                            errorMessage = 'Không tìm thấy nhân viên cần xóa!';
+                        }
+                        
+                        alert(errorMessage);
+                        // Reload to restore the row
+                        loadEmployeesWithCache();
+                    }
+                });
+            }
+        }
+
         // Load employees và cache data
         function loadEmployeesWithCache() {
-            $('#employees-table-body').html('<tr><td colspan="6" class="text-center">Đang tải dữ liệu...</td></tr>');
+            $('#employees-table-body').html('<tr><td colspan="7" class="text-center">Đang tải dữ liệu...</td></tr>');
 
             $.ajax({
                 url: '{{ route("manager.employees") }}',
@@ -487,7 +576,7 @@
                             window.location.href = '{{ route("login") }}';
                         }, 2000);
                     }
-                    $('#employees-table-body').html(`<tr><td colspan="6" class="text-center text-danger">${errorMessage}</td></tr>`);
+                    $('#employees-table-body').html(`<tr><td colspan="7" class="text-center text-danger">${errorMessage}</td></tr>`);
                 }
             });
         }
