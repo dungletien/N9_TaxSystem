@@ -104,7 +104,7 @@ class ManagerController extends Controller
                 Log::info("Manager {" . Session::get('user.id') . "} deleted employee {$employee->id} - {$employee->full_name}");
 
                 return response()->json([
-                    'success' => true, 
+                    'success' => true,
                     'message' => "Đã xóa thành công nhân viên {$employee->full_name}"
                 ]);
 

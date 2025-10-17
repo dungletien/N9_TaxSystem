@@ -28,9 +28,9 @@ Route::get('/test-password/{id}/{password}', function ($id, $password) {
     if (!$user) {
         return response()->json(['error' => 'User not found']);
     }
-    
+
     $isValid = \Illuminate\Support\Facades\Hash::check($password, $user->password);
-    
+
     return response()->json([
         'user_id' => $id,
         'test_password' => $password,
@@ -61,6 +61,7 @@ Route::prefix('accountant')->name('accountant.')->group(function () {
     // Quản lý tài khoản
     Route::post('/accounts', [AccountantController::class, 'createAccount'])->name('accounts.create');
     Route::get('/accounts', [AccountantController::class, 'getAccounts'])->name('accounts');
+    Route::post('/accounts/{id}/reset-password', [AccountantController::class, 'resetPassword'])->name('accounts.reset-password');
 
     // Thiết lập giảm trừ
     Route::get('/deductions', [AccountantController::class, 'getDeductions'])->name('deductions');

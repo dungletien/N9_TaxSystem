@@ -144,7 +144,7 @@ class AccountantController extends Controller
             }
 
             return response()->json([
-                'success' => true, 
+                'success' => true,
                 'message' => 'Cập nhật thông tin nhân viên thành công!' . ($request->filled('password') ? ' Mật khẩu đã được thay đổi.' : '')
             ]);
 
@@ -156,42 +156,98 @@ class AccountantController extends Controller
 
     public function createAccount(Request $request)
     {
-        $request->validate([
-            'id' => 'required|string|max:10|unique:users,id',
-            'full_name' => 'required|string|max:100',
-            'password' => 'required|string|min:6',
-            'department' => 'required|in:marketing,sales,nhân sự,kinh doanh',
-            'position' => 'required|in:nhân viên',
-            'phone' => 'required|string|size:10|unique:users,phone',
-            'cccd' => 'required|string|size:12|unique:users,cccd',
-            'role' => 'required|in:ke-toan,nhan-vien,truong-phong',
-        ]);
+        try {
+            $request->validate([
+                'id' => 'required|string|max:10|unique:users,id',
+                'full_name' => 'required|string|max:100',
+                'password' => 'required|string|min:6',
+                'department' => 'required|in:marketing,sales,nhân sự,kinh doanh',
+                'position' => 'required|in:nhân viên',
+                'phone' => 'required|string|size:10|unique:users,phone',
+                'cccd' => 'required|string|size:12|unique:users,cccd',
+                'role' => 'required|in:ke-toan,nhan-vien,truong-phong',
+                'gender' => 'sometimes|in:Nam,Nữ',
+                'address' => 'sometimes|string|max:255'
+            ]);
 
-        // Tạo tài khoản user
-        $user = User::create([
-            'id' => $request->id,
-            'full_name' => $request->full_name,
-            'password' => Hash::make($request->password),
-            'department' => $request->department,
-            'position' => $request->position,
-            'phone' => $request->phone,
-            'cccd' => $request->cccd,
-            'gender' => 'Nam', // Default
-        ]);
+            DB::beginTransaction();
 
-        // Tạo role cho user
-        UserRole::create([
-            'user_id' => $user->id,
-            'user_type' => $request->role,
-        ]);
+            // Tạo tài khoản user
+            $user = User::create([
+                'id' => $request->id,
+                'full_name' => $request->full_name,
+                'password' => Hash::make($request->password),
+                'department' => $request->department,
+                'position' => $request->position,
+                'phone' => $request->phone,
+                'cccd' => $request->cccd,
+                'gender' => $request->gender ?? 'Nam',
+                'address' => $request->address
+            ]);
 
-        return response()->json(['success' => true, 'message' => 'Tạo tài khoản thành công!']);
+            // Tạo role cho user
+            UserRole::create([
+                'user_id' => $user->id,
+                'user_type' => $request->role,
+            ]);
+
+            DB::commit();
+
+            Log::info("Account created for user {$user->id} by accountant");
+
+            return response()->json([
+                'success' => true,
+                'message' => "Tạo tài khoản thành công cho nhân viên {$user->full_name}!"
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Error creating account: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi tạo tài khoản: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function getAccounts()
+    public function getAccounts(Request $request)
     {
-        $accounts = User::select('id', 'full_name', 'department', 'position', 'cccd')->get();
-        return response()->json($accounts);
+        try {
+            $role = $request->get('role', 'all');
+            $search = $request->get('search', '');
+
+            $query = User::leftJoin('user_roles', 'users.id', '=', 'user_roles.user_id');
+
+            if ($role !== 'all') {
+                $query->where('user_roles.user_type', $role);
+            }
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('users.id', 'LIKE', '%' . $search . '%')
+                        ->orWhere('users.full_name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('users.department', 'LIKE', '%' . $search . '%')
+                        ->orWhere('users.phone', 'LIKE', '%' . $search . '%');
+                });
+            }
+
+            $accounts = $query->select(
+                'users.*',
+                'user_roles.user_type as role'
+            )->orderBy('users.full_name', 'asc')->get();
+
+            return response()->json($accounts);
+        } catch (\Exception $e) {
+            Log::error('Error getting accounts: ' . $e->getMessage());
+            return response()->json(['error' => 'Có lỗi xảy ra khi tải danh sách tài khoản!'], 500);
+        }
     }
 
     public function getDeductions(Request $request)
@@ -456,5 +512,36 @@ class AccountantController extends Controller
         }
 
         return max(0, $taxAmount);
+    }
+
+    public function resetPassword($id)
+    {
+        try {
+            $user = User::find($id);
+
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không tìm thấy tài khoản!'
+                ], 404);
+            }
+
+            $user->password = Hash::make('123456');
+            $user->save();
+
+            Log::info("Password reset for user {$id} by accountant");
+
+            return response()->json([
+                'success' => true,
+                'message' => "Đặt lại mật khẩu thành công cho {$user->full_name}"
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error resetting password: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra khi đặt lại mật khẩu!'
+            ], 500);
+        }
     }
 }

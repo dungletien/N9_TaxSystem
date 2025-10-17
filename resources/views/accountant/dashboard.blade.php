@@ -223,88 +223,61 @@
                 <!-- Tab Quản lý tài khoản -->
                 <div id="account-management-tab" class="tab-content">
                     <div class="card">
-                        <div class="card-header">
-                            <h4 class="mb-0"><i class="fas fa-user-plus"></i> Tạo tài khoản mới</h4>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0"><i class="fas fa-user-plus"></i> Quản lý tài khoản</h4>
+                            <button class="btn btn-success" onclick="showCreateAccountModal()">
+                                <i class="fas fa-plus"></i> Tạo tài khoản mới
+                            </button>
                         </div>
                         <div class="card-body">
-                            <form id="create-account-form">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Mã nhân viên</label>
-                                            <input type="text" class="form-control" name="id" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Họ và tên</label>
-                                            <input type="text" class="form-control" name="full_name" required>
-                                        </div>
+                            <!-- Thanh tìm kiếm và bộ lọc -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <select class="form-control" id="account-role-filter" onchange="loadAccounts()">
+                                        <option value="all">Tất cả vai trò</option>
+                                        <option value="nhan-vien">Nhân viên</option>
+                                        <option value="truong-phong">Trưởng phòng</option>
+                                        <option value="ke-toan">Kế toán</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="search-account"
+                                            placeholder="Tìm kiếm theo tên, mã, phòng ban..." onkeyup="searchAccounts()"
+                                            onkeypress="handleEnterSearchAccount(event)">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="clearAccountSearch()"
+                                            title="Xóa tìm kiếm">
+                                            <i class="fas fa-times"></i>
+                                        </button>
                                     </div>
                                 </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Mật khẩu</label>
-                                            <input type="password" class="form-control" name="password" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Phòng ban</label>
-                                            <select class="form-control" name="department" required>
-                                                <option value="">Chọn phòng ban</option>
-                                                <option value="marketing">Marketing</option>
-                                                <option value="sales">Sales</option>
-                                                <option value="nhân sự">Nhân sự</option>
-                                                <option value="kinh doanh">Kinh doanh</option>
-                                            </select>
-                                        </div>
-                                    </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-success" onclick="loadAccounts()">
+                                        <i class="fas fa-sync-alt"></i> Làm mới
+                                    </button>
                                 </div>
+                            </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Số điện thoại</label>
-                                            <input type="text" class="form-control" name="phone" maxlength="10" required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">CCCD</label>
-                                            <input type="text" class="form-control" name="cccd" maxlength="12" required>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Chức vụ</label>
-                                            <select class="form-control" name="position" required>
-                                                <option value="nhân viên">Nhân viên</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Vai trò</label>
-                                            <select class="form-control" name="role" required>
-                                                <option value="">Chọn vai trò</option>
-                                                <option value="nhan-vien">Nhân viên</option>
-                                                <option value="truong-phong">Trưởng phòng</option>
-                                                <option value="ke-toan">Kế toán</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-save"></i> Tạo tài khoản
-                                </button>
-                            </form>
+                            <!-- Bảng danh sách tài khoản -->
+                            <div class="table-responsive">
+                                <table class="table table-striped" id="accounts-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã NV</th>
+                                            <th>Họ tên</th>
+                                            <th>Phòng ban</th>
+                                            <th>Vai trò</th>
+                                            <th>Điện thoại</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="accounts-table-body">
+                                        <tr>
+                                            <td colspan="6" class="text-center">Đang tải dữ liệu...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -529,16 +502,6 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label">Mật khẩu mới</label>
-                                    <input type="password" class="form-control" id="edit-password" name="password" placeholder="Để trống nếu không muốn thay đổi">
-                                    <small class="form-text text-muted">Để trống nếu không muốn thay đổi mật khẩu</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
                                     <label class="form-label">Phòng ban</label>
                                     <select class="form-control" id="edit-department" name="department" required>
                                         <option value="">Chọn phòng ban</option>
@@ -622,6 +585,123 @@
                     </button>
                     <button type="button" class="btn btn-success" onclick="updateEmployee()">
                         <i class="fas fa-save"></i> Cập nhật
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal tạo tài khoản mới -->
+    <div class="modal fade" id="createAccountModal" tabindex="-1" aria-labelledby="createAccountModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createAccountModalLabel">
+                        <i class="fas fa-user-plus"></i> Tạo tài khoản mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="create-account-form">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Mã nhân viên</label>
+                                    <input type="text" class="form-control" name="id" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Họ và tên</label>
+                                    <input type="text" class="form-control" name="full_name" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Mật khẩu</label>
+                                    <input type="password" class="form-control" name="password" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Phòng ban</label>
+                                    <select class="form-control" name="department" required>
+                                        <option value="">Chọn phòng ban</option>
+                                        <option value="marketing">Marketing</option>
+                                        <option value="sales">Sales</option>
+                                        <option value="nhân sự">Nhân sự</option>
+                                        <option value="kinh doanh">Kinh doanh</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Số điện thoại</label>
+                                    <input type="text" class="form-control" name="phone" maxlength="10" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">CCCD</label>
+                                    <input type="text" class="form-control" name="cccd" maxlength="12" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Chức vụ</label>
+                                    <select class="form-control" name="position" required>
+                                        <option value="nhân viên">Nhân viên</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Vai trò</label>
+                                    <select class="form-control" name="role" required>
+                                        <option value="">Chọn vai trò</option>
+                                        <option value="nhan-vien">Nhân viên</option>
+                                        <option value="truong-phong">Trưởng phòng</option>
+                                        <option value="ke-toan">Kế toán</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Giới tính</label>
+                                    <select class="form-control" name="gender">
+                                        <option value="Nam">Nam</option>
+                                        <option value="Nữ">Nữ</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Địa chỉ</label>
+                                    <input type="text" class="form-control" name="address">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Hủy
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="createAccount()">
+                        <i class="fas fa-save"></i> Tạo tài khoản
                     </button>
                 </div>
             </div>
@@ -814,9 +894,6 @@
                         $('#edit-dependent').val(employee.dependent || 0);
                         $('#edit-role').val(employee.role);
                         $('#edit-address').val(employee.address || '');
-                        
-                        // Clear password field
-                        $('#edit-password').val('');
 
                         console.log('Form fields filled, showing modal...');
 
@@ -841,15 +918,6 @@
         }
 
         function updateEmployee() {
-            // Validate password
-            const password = $('#edit-password').val();
-            
-            // Nếu có nhập password, kiểm tra độ dài tối thiểu
-            if (password && password.length < 6) {
-                alert('Mật khẩu phải có ít nhất 6 ký tự!');
-                return;
-            }
-            
             const id = $('#edit-employee-id').val();
             const formData = $('#edit-employee-form').serialize();
 
@@ -867,12 +935,7 @@
                 data: formData + '&_token={{ csrf_token() }}',
                 success: function (response) {
                     if (response.success) {
-                        // Hiển thị thông báo thành công chi tiết
-                        let successMessage = response.message;
-                        if (password) {
-                            successMessage += '\nMật khẩu đã được cập nhật thành công!';
-                        }
-                        alert(successMessage);
+                        alert(response.message);
                         $('#editEmployeeModal').modal('hide');
                         loadEmployees(); // Reload danh sách nhân viên
                     } else {
@@ -899,13 +962,97 @@
             });
         }
 
-        $('#create-account-form').submit(function (e) {
-            e.preventDefault();
+        // Account Management Functions
+        function showCreateAccountModal() {
+            $('#create-account-form')[0].reset();
+            const modal = new bootstrap.Modal(document.getElementById('createAccountModal'));
+            modal.show();
+        }
+
+        function loadAccounts() {
+            const role = $('#account-role-filter').val();
+            const search = $('#search-account').val();
+
+            $('#accounts-table-body').html('<tr><td colspan="7" class="text-center">Đang tải dữ liệu...</td></tr>');
+
+            $.ajax({
+                url: '{{ route("accountant.accounts") }}',
+                method: 'GET',
+                data: {
+                    role: role,
+                    search: search
+                },
+                success: function (data) {
+                    let html = '';
+                    if (data.length > 0) {
+                        data.forEach(function (account) {
+                            const roleText = getRoleText(account.role);
+
+                            html += `<tr>
+                                        <td>${account.id}</td>
+                                        <td>${account.full_name}</td>
+                                        <td>${account.department}</td>
+                                        <td>${roleText}</td>
+                                        <td>${account.phone || ''}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary me-1" onclick="editAccount('${account.id}')" title="Chỉnh sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-warning me-1" onclick="resetPassword('${account.id}')" title="Đặt lại mật khẩu">
+                                                <i class="fas fa-key"></i>
+                                            </button>
+                                        </td>
+                                    </tr>`;
+                        });
+                    } else {
+                        html = '<tr><td colspan="6" class="text-center">Không có dữ liệu tài khoản</td></tr>';
+                    }
+                    $('#accounts-table-body').html(html);
+                },
+                error: function () {
+                    $('#accounts-table-body').html('<tr><td colspan="6" class="text-center text-danger">Có lỗi xảy ra khi tải dữ liệu!</td></tr>');
+                }
+            });
+        }
+
+        function getRoleText(role) {
+            const roleMap = {
+                'nhan-vien': 'Nhân viên',
+                'truong-phong': 'Trưởng phòng',
+                'ke-toan': 'Kế toán'
+            };
+            return roleMap[role] || role;
+        }
+
+        // Biến để lưu timeout cho debounce search account
+        let searchAccountTimeout;
+
+        function searchAccounts() {
+            clearTimeout(searchAccountTimeout);
+            searchAccountTimeout = setTimeout(function () {
+                loadAccounts();
+            }, 500);
+        }
+
+        function clearAccountSearch() {
+            $('#search-account').val('');
+            loadAccounts();
+        }
+
+        function handleEnterSearchAccount(event) {
+            if (event.key === 'Enter') {
+                clearTimeout(searchAccountTimeout);
+                loadAccounts();
+            }
+        }
+
+        function createAccount() {
+            const formData = $('#create-account-form').serialize();
 
             // Show loading
-            const submitBtn = $(this).find('button[type="submit"]');
-            const originalText = submitBtn.html();
-            submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang tạo...');
+            const createBtn = $('button:contains("Tạo tài khoản")');
+            const originalText = createBtn.html();
+            createBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang tạo...');
 
             $.ajax({
                 url: '{{ route("accountant.accounts.create") }}',
@@ -913,11 +1060,13 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
-                data: $(this).serialize() + '&_token={{ csrf_token() }}',
+                data: formData + '&_token={{ csrf_token() }}',
                 success: function (data) {
                     if (data.success) {
                         alert(data.message);
+                        $('#createAccountModal').modal('hide');
                         $('#create-account-form')[0].reset();
+                        loadAccounts(); // Reload accounts list
                     } else {
                         alert(data.message);
                     }
@@ -936,11 +1085,44 @@
                     alert(errorMessage);
                 },
                 complete: function () {
-                    // Restore button
-                    submitBtn.prop('disabled', false).html(originalText);
+                    createBtn.prop('disabled', false).html(originalText);
                 }
             });
-        });
+        }
+
+        function editAccount(id) {
+            // Redirect to employee edit function since they share similar functionality
+            editEmployee(id);
+        }
+
+        function resetPassword(id) {
+            if (confirm('Bạn có chắc chắn muốn đặt lại mật khẩu cho tài khoản này?\nMật khẩu mới sẽ là "123456".')) {
+                $.ajax({
+                    url: `/accountant/accounts/${id}/reset-password`,
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Đặt lại mật khẩu thành công!\nMật khẩu mới: 123456');
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        let errorMessage = 'Có lỗi xảy ra khi đặt lại mật khẩu!';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        alert(errorMessage);
+                    }
+                });
+            }
+        }
 
         function loadDeductions() {
             const year = $('#deduction-year').val();
@@ -1334,6 +1516,7 @@
         // Load data on page load
         $(document).ready(function () {
             loadEmployees();
+            loadAccounts();
             loadDeductions();
         });
     </script>

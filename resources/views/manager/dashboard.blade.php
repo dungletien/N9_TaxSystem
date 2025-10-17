@@ -507,7 +507,7 @@
             if (confirm(`Bạn có chắc chắn muốn xóa nhân viên "${employeeName}" (ID: ${employeeId}) không?\n\nLưu ý: Hành động này sẽ xóa tất cả dữ liệu liên quan đến nhân viên này bao gồm lương, thuế, và không thể hoàn tác!`)) {
                 // Show loading state for the specific row
                 $(`tr:has(button[onclick*="${employeeId}"])`).find('td').last().html('<span class="text-warning"><i class="fas fa-spinner fa-spin"></i> Đang xóa...</span>');
-                
+
                 $.ajax({
                     url: '{{ route("manager.delete-employee") }}',
                     method: 'DELETE',
@@ -519,10 +519,10 @@
                         if (response.success) {
                             // Show success message
                             alert(`Đã xóa thành công nhân viên "${employeeName}"`);
-                            
+
                             // Remove employee from cache
                             allEmployees = allEmployees.filter(emp => emp.id !== employeeId);
-                            
+
                             // Update display
                             displayEmployees(allEmployees);
                         } else {
@@ -534,7 +534,7 @@
                     error: function (xhr, status, error) {
                         console.error('Error deleting employee:', error);
                         let errorMessage = 'Có lỗi xảy ra khi xóa nhân viên!';
-                        
+
                         if (xhr.status === 401) {
                             errorMessage = 'Phiên đăng nhập đã hết hạn!';
                             setTimeout(() => {
@@ -547,7 +547,7 @@
                         } else if (xhr.status === 404) {
                             errorMessage = 'Không tìm thấy nhân viên cần xóa!';
                         }
-                        
+
                         alert(errorMessage);
                         // Reload to restore the row
                         loadEmployeesWithCache();

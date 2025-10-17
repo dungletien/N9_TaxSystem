@@ -8,6 +8,7 @@ use App\Models\MonthTax;
 use App\Models\YearTax;
 use App\Models\Deduction;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Hash;
 
 class EmployeeController extends Controller
 {
@@ -33,17 +34,39 @@ class EmployeeController extends Controller
     {
         $request->validate([
             'full_name' => 'required|string|max:100',
-            'dob' => 'required|date',
+            'dob' => 'nullable|date',
             'gender' => 'required|in:Nam,Nữ',
             'address' => 'required|string|max:255',
             'dependent' => 'required|integer|min:0',
             'phone' => 'required|string|size:10|unique:users,phone,' . Session::get('user.id'),
+            'password' => 'nullable|string|min:6|confirmed',
         ]);
 
         $user = User::find(Session::get('user.id'));
-        $user->update($request->all());
 
-        return back()->with('success', 'Thông tin đã được cập nhật thành công!');
+        // Chuẩn bị dữ liệu để cập nhật
+        $updateData = [
+            'full_name' => $request->full_name,
+            'dob' => $request->dob,
+            'gender' => $request->gender,
+            'address' => $request->address,
+            'dependent' => $request->dependent,
+            'phone' => $request->phone,
+        ];
+
+        // Nếu có mật khẩu mới, thêm vào dữ liệu cập nhật
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+
+        $user->update($updateData);
+
+        $message = 'Thông tin đã được cập nhật thành công!';
+        if ($request->filled('password')) {
+            $message .= ' Mật khẩu đã được thay đổi.';
+        }
+
+        return back()->with('success', $message);
     }
 
     public function getSalaries(Request $request)
