@@ -68,14 +68,6 @@ php artisan key:generate
 ```
 
 ### 4. Cấu hình database
-Mặc định sử dụng SQLite. Nếu muốn dùng MySQL, cập nhật file `.env`:
-
-**SQLite (mặc định):**
-```env
-DB_CONNECTION=sqlite
-DB_DATABASE=/absolute/path/to/database/database.sqlite
-```
-
 **MySQL:**
 ```env
 DB_CONNECTION=mysql
@@ -119,36 +111,6 @@ Sau khi chạy seeder, bạn có thể đăng nhập với các tài khoản sau
 | Trưởng phòng | 123456789013 | 123456 | truong-phong |
 | Kế toán | 123456789014 | 123456 | ke-toan |
 
-## Cấu trúc dự án
-
-```
-tax/
-├── app/
-│   ├── Http/Controllers/
-│   │   ├── AuthController.php          # Xử lý đăng nhập/đăng xuất
-│   │   ├── EmployeeController.php      # Chức năng nhân viên
-│   │   ├── ManagerController.php       # Chức năng trưởng phòng
-│   │   └── AccountantController.php    # Chức năng kế toán
-│   └── Models/
-│       ├── User.php                    # Model người dùng
-│       ├── UserRole.php               # Model vai trò
-│       ├── MonthTax.php               # Model thuế tháng
-│       ├── YearTax.php                # Model thuế năm
-│       └── Deduction.php              # Model giảm trừ
-├── database/
-│   ├── migrations/                     # File migration
-│   ├── seeders/                       # File seeder
-│   └── database.sqlite                # Database SQLite
-├── resources/
-│   └── views/
-│       ├── auth/                      # Views đăng nhập
-│       ├── employee/                  # Views nhân viên
-│       ├── manager/                   # Views trưởng phòng
-│       └── accountant/                # Views kế toán
-└── routes/
-    └── web.php                        # Định nghĩa routes
-```
-
 ## API Documentation
 
 ### Authentication
@@ -188,52 +150,20 @@ tax/
 - **Giảm trừ bản thân:** 11.000.000 VNĐ/tháng
 - **Giảm trừ người phụ thuộc:** 4.400.000 VNĐ/tháng/người
 
-## Troubleshooting
-
-### Lỗi database
-```bash
-# Xóa và tạo lại database
-rm database/database.sqlite
-touch database/database.sqlite
-php artisan migrate:fresh --seed
-```
-
-### Lỗi permissions
-```bash
-# Linux/macOS
-chmod -R 775 storage bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache
-
-# Windows
-# Cấp quyền Full Control cho thư mục storage và bootstrap/cache
-```
-
-### Lỗi Composer/NPM
-```bash
-# Clear cache và reinstall
-composer clear-cache
-composer install --no-cache
-
-npm cache clean --force
-npm install
-```
-
-## Contributing
-
-1. Fork dự án
-2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Mở Pull Request
-
-## License
-
-Dự án được phát hành dưới giấy phép [MIT License](https://opensource.org/licenses/MIT).
+## Giao diện
+*Đăng nhập*
+<img width="1451" height="684" alt="image" src="https://github.com/user-attachments/assets/a40f5e45-c09e-441a-a276-6a31334e5ab8" />
+*Nhân viên*
+<img width="1587" height="733" alt="image" src="https://github.com/user-attachments/assets/daf5aad2-088b-41f7-abb5-4c36fb1e2ceb" />
+*Trưởng phòng*
+<img width="1600" height="754" alt="image" src="https://github.com/user-attachments/assets/ec51077b-1b69-4f31-ae7b-801a0c901326" />
+*Kế toán*
+<img width="1896" height="900" alt="image" src="https://github.com/user-attachments/assets/d68570ef-541f-4645-ba42-4db1c2b2aa50" />
 
 ## Liên hệ
 
-- **Email:** [your-email@example.com]
-- **GitHub:** [your-github-profile]
+- **Email:** [ledung22092004@gmail.com]
+- **GitHub:** [dungletien]
 
 ---
 
