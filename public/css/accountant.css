@@ -1,0 +1,118 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.sidebar {
+    background: linear-gradient(135deg, #004e92 0%, #000428 100%);
+    color: white;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+}
+
+.profile-section {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-button {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 5px;
+    width: 100%;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.nav-button:hover,
+.nav-button.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.content-area {
+    padding: 2rem;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #004e92 0%, #000428 100%);
+    color: white;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #004e92 0%, #000428 100%);
+    border: none;
+    border-radius: 25px;
+}
+
+/* Search functionality styles */
+#search-employee {
+    border-radius: 25px 0 0 25px;
+    border-right: none;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+#search-employee:focus {
+    border-color: #ced4da;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.input-group .btn-outline-secondary {
+    border-radius: 0 25px 25px 0;
+    border-left: none;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.input-group .btn-outline-secondary:hover {
+    background-color: #004e92;
+    border-color: #004e92;
+    color: white;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.input-group .btn-outline-secondary:active,
+.input-group .btn-outline-secondary:focus {
+    background-color: #000428 !important;
+    border-color: #000428 !important;
+    color: white !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 78, 146, 0.1);
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.modal-body .form-control:focus {
+    border-color: #004e92;
+    box-shadow: 0 0 0 0.2rem rgba(0, 78, 146, 0.25);
+}

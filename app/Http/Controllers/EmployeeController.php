@@ -71,13 +71,33 @@ class EmployeeController extends Controller
 
     public function getSalaries(Request $request)
     {
-        $year = $request->get('year');
+        if (!Session::has('user') || Session::get('user.user_type') !== 'nhan-vien') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $year = $request->year;
         $userId = Session::get('user.id');
 
+        if (!$year) {
+            return response()->json(['error' => 'Thiếu thông tin năm'], 400);
+        }
+
+        // Lấy thông tin user để có dependent
+        $user = User::find($userId);
+
         $salaries = MonthTax::where('user_id', $userId)
-                           ->where('year', $year)
-                           ->orderBy('month')
-                           ->get();
+            ->where('year', $year)
+            ->orderBy('month')
+            ->get()
+            ->map(function ($item) use ($user) {
+                return [
+                    'month' => $item->month,
+                    'salary' => $item->salary,
+                    'tax' => $item->tax,
+                    'net_salary' => $item->net_salary,
+                    'dependent' => $user->dependent ?? 0  // Thêm thông tin dependent
+                ];
+            });
 
         return response()->json($salaries);
     }
@@ -97,8 +117,8 @@ class EmployeeController extends Controller
         $currentYear = date('Y');
 
         $deduction = Deduction::where('month', $currentMonth)
-                             ->where('year', $currentYear)
-                             ->first();
+            ->where('year', $currentYear)
+            ->first();
 
         if (!$deduction) {
             // Nếu không có, lấy mức giảm trừ mặc định

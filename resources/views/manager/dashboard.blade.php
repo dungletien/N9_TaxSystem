@@ -405,18 +405,18 @@
                     if (data.length > 0) {
                         data.forEach(function (employee) {
                             html += `<tr>
-                                        <td>${employee.id}</td>
-                                        <td>${employee.full_name}</td>
-                                        <td>${employee.department}</td>
-                                        <td>${employee.phone || 'Chưa cập nhật'}</td>
-                                        <td>${employee.cccd}</td>
-                                        <td>${employee.address || 'Chưa cập nhật'}</td>
-                                        <td>
-                                            <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${employee.id}', '${employee.full_name}')" title="Xóa nhân viên">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>`;
+                                            <td>${employee.id}</td>
+                                            <td>${employee.full_name}</td>
+                                            <td>${employee.department}</td>
+                                            <td>${employee.phone || 'Chưa cập nhật'}</td>
+                                            <td>${employee.cccd}</td>
+                                            <td>${employee.address || 'Chưa cập nhật'}</td>
+                                            <td>
+                                                <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${employee.id}', '${employee.full_name}')" title="Xóa nhân viên">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>`;
                         });
                     } else {
                         html = '<tr><td colspan="7" class="text-center">Không có nhân viên nào trong phòng ban</td></tr>';
@@ -475,18 +475,18 @@
             if (employees.length > 0) {
                 employees.forEach(function (employee) {
                     html += `<tr>
-                                <td>${employee.id}</td>
-                                <td>${employee.full_name}</td>
-                                <td>${employee.department}</td>
-                                <td>${employee.phone || 'Chưa cập nhật'}</td>
-                                <td>${employee.cccd}</td>
-                                <td>${employee.address || 'Chưa cập nhật'}</td>
-                                <td>
-                                    <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${employee.id}', '${employee.full_name}')" title="Xóa nhân viên">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>`;
+                                    <td>${employee.id}</td>
+                                    <td>${employee.full_name}</td>
+                                    <td>${employee.department}</td>
+                                    <td>${employee.phone || 'Chưa cập nhật'}</td>
+                                    <td>${employee.cccd}</td>
+                                    <td>${employee.address || 'Chưa cập nhật'}</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${employee.id}', '${employee.full_name}')" title="Xóa nhân viên">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>`;
                 });
             } else {
                 const searchTerm = $('#search-employee').val().trim();

@@ -11,35 +11,6 @@ Route::get('/', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Test route
-Route::get('/test-employee/{id}', function ($id) {
-    $user = \App\Models\User::find($id);
-    $role = \App\Models\UserRole::where('user_id', $id)->first();
-
-    return response()->json([
-        'user' => $user,
-        'role' => $role
-    ]);
-});
-
-// Test password route
-Route::get('/test-password/{id}/{password}', function ($id, $password) {
-    $user = \App\Models\User::find($id);
-    if (!$user) {
-        return response()->json(['error' => 'User not found']);
-    }
-
-    $isValid = \Illuminate\Support\Facades\Hash::check($password, $user->password);
-
-    return response()->json([
-        'user_id' => $id,
-        'test_password' => $password,
-        'stored_hash' => $user->password,
-        'is_valid' => $isValid,
-        'hash_test' => \Illuminate\Support\Facades\Hash::make($password)
-    ]);
-});
-
 // Routes cho Nhân viên
 Route::prefix('employee')->name('employee.')->group(function () {
     Route::get('/dashboard', [EmployeeController::class, 'dashboard'])->name('dashboard');

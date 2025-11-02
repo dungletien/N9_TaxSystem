@@ -147,7 +147,7 @@
             </div>
 
             <button class="nav-button active" onclick="switchTab('info-tab')">
-                <i class="fas fa-user-edit"></i> Nhập thông tin
+                <i class="fas fa-user-edit"></i> Thông tin cá nhân
             </button>
             <button class="nav-button" onclick="switchTab('salary-tab')">
                 <i class="fas fa-money-bill-wave"></i> Xem lương và thuế cá nhân
@@ -308,6 +308,7 @@
                                     <tr>
                                         <th>Tháng</th>
                                         <th>Lương</th>
+                                        <th>Số người phụ thuộc</th>
                                         <th>Thuế cần nộp</th>
                                         <th>Lương thực nhận</th>
                                     </tr>
@@ -394,12 +395,13 @@
                         html += `<tr>
                             <td>${item.month}</td>
                             <td>${new Intl.NumberFormat('vi-VN').format(item.salary)} VNĐ</td>
+                            <td>${item.dependent || 0}</td>
                             <td>${new Intl.NumberFormat('vi-VN').format(item.tax)} VNĐ</td>
                             <td>${new Intl.NumberFormat('vi-VN').format(item.net_salary)} VNĐ</td>
                         </tr>`;
                     });
                 } else {
-                    html = '<tr><td colspan="4" class="text-center">Không có dữ liệu</td></tr>';
+                    html = '<tr><td colspan="5" class="text-center">Không có dữ liệu</td></tr>';
                 }
                 $('#salary-table-body').html(html);
             },
@@ -460,7 +462,7 @@
         $('input[name="password_confirmation"]').on('keyup', function() {
             const password = $('input[name="password"]').val();
             const confirmPassword = $(this).val();
-            
+
             if (password !== '' && confirmPassword !== '') {
                 if (password !== confirmPassword) {
                     $(this).addClass('is-invalid').removeClass('is-valid');
@@ -481,7 +483,7 @@
         $('input[name="password"]').on('keyup', function() {
             const password = $(this).val();
             const confirmPassword = $('input[name="password_confirmation"]').val();
-            
+
             // Validate password length
             if (password !== '' && password.length < 6) {
                 $(this).addClass('is-invalid').removeClass('is-valid');
@@ -495,7 +497,7 @@
                 $(this).removeClass('is-invalid is-valid');
                 $(this).next('.invalid-feedback').remove();
             }
-            
+
             // Re-validate confirmation if it has value
             if (confirmPassword !== '') {
                 $('input[name="password_confirmation"]').trigger('keyup');
@@ -506,14 +508,14 @@
         $('form').on('submit', function(e) {
             const password = $('input[name="password"]').val();
             const confirmPassword = $('input[name="password_confirmation"]').val();
-            
+
             if (password !== '' && password !== confirmPassword) {
                 e.preventDefault();
                 alert('Mật khẩu và xác nhận mật khẩu không khớp!');
                 $('input[name="password_confirmation"]').focus();
                 return false;
             }
-            
+
             if (password !== '' && password.length < 6) {
                 e.preventDefault();
                 alert('Mật khẩu phải có ít nhất 6 ký tự!');

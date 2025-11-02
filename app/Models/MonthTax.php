@@ -11,7 +11,7 @@ class MonthTax extends Model
         'user_id',
         'month',
         'year',
-        'salary',
+        'salary', 
         'tax',
         'net_salary',
     ];
